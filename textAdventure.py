@@ -26,7 +26,7 @@ SLOWMODE = False
 MAIN_LIST = ["Play a story", "Write a story", "Quit"]
 WRITE_LIST = ["Create a new story", "Load an existing story", "Back"]
 LOAD_LIST = ["Load default story", "Load from a known file", "Back"]
-PROGRESS_LIST = ["Load progress using player name", "Start a new game", "Back"]
+PROGRESS_LIST = ["Load progress using current player", "Load progress using player name", "Start a new game", "Back"]
 MULTISAVE_LIST = ["Overwrite existing progress", "Create a new progress save", "Re-enter player name"]
 
 def getInput():
@@ -71,6 +71,8 @@ def showOptions(options):
             HEAD_POS = 1
             nPrint(1)
             sPrint("Error loading options. Restarting sequence.")
+    sPrint("===")
+    sPrint("[q] Quit")
 
 def getNextText(opt):
     if (opt.get('nextText')):
@@ -146,7 +148,8 @@ def startGame():
     global STATE
 
     ## Loop whole sequence
-    while (HEAD_POS > 0):
+    answer = ""
+    while (HEAD_POS > 0 and answer != 'q'):
         print("INVENTORY:", STATE)  ##TEMP
         ## Load current object
         obj = loadPos(HEAD_POS)
@@ -157,16 +160,16 @@ def startGame():
         if (objText and objOpt):
             showText(objText)
             nextText = 0
-            while (nextText < 1):
+            while (nextText < 1 and answer != 'q'):
                 showOptions(objOpt)
                 answer = getInput()
                 chosenOption = getOption(objOpt, answer)
-                if (chosenOption):
+                if (chosenOption and answer != 'q'):
                     nextText = getNextText(chosenOption)
                     HEAD_POS = nextText
+                    updateState(chosenOption)
                 else:
                     nextText = HEAD_POS
-                updateState(chosenOption)
                 if (not saveProgress()):
                     nPrint(1)
                     sPrint("Progress save could not be made.")
@@ -267,6 +270,7 @@ def saveProgress():
     return False
 
 def importProgress(dataParsed):
+    global PROGRESS_LIST
     global PLAYER_SAVED
     global PLAYER
     global STATE
@@ -275,11 +279,31 @@ def importProgress(dataParsed):
     playerName = ""
     playerLoaded = False
     while (not playerLoaded and answer != 'b'):
+        if (len(PLAYER) > 0 and (not "Load progress using current player" in PROGRESS_LIST)):
+            PROGRESS_LIST.insert(0, "Load progress using current player")
+        elif ("Load progress using current player" in PROGRESS_LIST):
+            PROGRESS_LIST.remove("Load progress using current player")
         showMenu("Player Menu", PROGRESS_LIST)
         answer = getInput()
         try:
             answer = int(answer)
-            if (PROGRESS_LIST[answer - 1] == "Load progress using player name"):
+            if (PROGRESS_LIST[answer - 1] == "Load progress using current player"):
+                try:
+                    for player in dataParsed['progress']:
+                        if (player.get('player') == PLAYER):
+                            PLAYER_SAVED = "exists"
+                            HEAD_POS = player.get('position')
+                            STATE = player.get('state')
+                            playerLoaded = True
+                            return playerLoaded
+                    nPrint(1)
+                    sPrint("This player could not be found.")
+                except (json.decoder.JSONDecodeError) as e:
+                    nPrint(1)
+                    sPrint("This player could not be found.")
+                    sPrint("Error detail (LOAD5): " + str(e))
+                    return playerLoaded
+            elif (PROGRESS_LIST[answer - 1] == "Load progress using player name"):
                 sPrint("Please enter the existing player name...")
                 playerName = getInput()
                 try:
@@ -357,8 +381,11 @@ def importStory():
                 sPrint("Error detail (LOAD1): " + str(e))
 
 def showMenu(menuName, menuList, subText = ""):
+    global PLAYER
     nPrint(2)
     sPrint("===| " + menuName + " |===")
+    if (len(PLAYER) > 0):
+        sPrint("Player: " + PLAYER)
     if (len(subText) > 0):
         sPrint(subText)
     sPrint("Please select an option:")
