@@ -6,8 +6,9 @@ import traceback    ## Allows visual of errors -> traceback.print_exc()
 ## Name of file containing progress and content
 FILENAME = ""
 
-## List for holding game content
+## List for holding game content and progress
 CONTENT = []
+PROGRESS = []
 
 ## Player name and save status as per story
 PLAYER = "jntowell"     ## TEMP VALUE
@@ -23,11 +24,12 @@ STATE = {}
 SLOWMODE = False
 
 ## Menu option lists
-MAIN_LIST = ["Play a story", "Write a story", "Quit"]
+MAIN_LIST = ["Play a story", "Write a story", "Manage players", "Quit"]
 WRITE_LIST = ["Create a new story", "Load an existing story", "Back"]
 LOAD_LIST = ["Load default story", "Load from a known file", "Back"]
-PROGRESS_LIST = ["Load progress using current player", "Load progress using player name", "Start a new game", "Back"]
+PROGRESS_LIST = ["Load progress using player name", "Start a new game", "Back"]
 MULTISAVE_LIST = ["Overwrite existing progress", "Create a new progress save", "Re-enter player name"]
+MANAGE_LIST = ["View player saves", "Delete a player save", "Delete all player saves", "Back"]
 
 def getInput():
     print("")
@@ -277,6 +279,40 @@ def saveProgress():
         return False
     return False
 
+def importAllData():
+    global FILENAME
+    global LOAD_LIST
+    global CONTENT
+    global PROGRESS
+    filename = ""
+    fileLoaded = False
+    while (not fileLoaded):
+        ## Get filename
+        showMenu("Load Menu", [])
+        sPrint("Please select a story file by entering the file name only...")
+        filename = getInput()
+        ## Load file
+        try:
+            with open(filename + '.json', 'r') as myFile:
+                data = myFile.read()
+                try:
+                    dataParsed = json.loads(data)
+                    CONTENT.append(dataParsed['content'])
+                    PROGRESS.append(dataParsed['progress'])
+                    FILENAME = filename
+                    fileLoaded = True
+                    return fileLoaded
+                except (json.decoder.JSONDecodeError) as e:
+                    nPrint(1)
+                    sPrint("This file could not be read.")
+                    sPrint("Error detail (DATA2): " + str(e))
+                    return fileLoaded
+        except (FileNotFoundError) as e:
+            nPrint(1)
+            sPrint("This file was not found.")
+            sPrint("Error detail (DATA1): " + str(e))
+            return fileLoaded
+
 def importProgress(dataParsed):
     global PROGRESS_LIST
     global PLAYER_SAVED
@@ -309,7 +345,7 @@ def importProgress(dataParsed):
                 except (json.decoder.JSONDecodeError) as e:
                     nPrint(1)
                     sPrint("This player could not be found.")
-                    sPrint("Error detail (LOAD5): " + str(e))
+                    sPrint("Error detail (LOAD6): " + str(e))
                     return playerLoaded
             elif (PROGRESS_LIST[answer - 1] == "Load progress using player name"):
                 sPrint("Please enter the existing player name...")
@@ -396,21 +432,23 @@ def showMenu(menuName, menuList, subText = ""):
         sPrint("Player: " + PLAYER)
     if (len(subText) > 0):
         sPrint(subText)
-    sPrint("Please select an option:")
-    ordinal = 1
-    for o in menuList:
-        if (o == "Quit"):
-            prefix = "q"
-        elif (o == "Back"):
-            prefix = "b"
-        else:
-            prefix = str(ordinal)
-        sPrint("[{}] {}".format(prefix, o))
-        ordinal += 1
+    if (len(menuList) > 0):
+        sPrint("Please select an option:")
+        ordinal = 1
+        for o in menuList:
+            if (o == "Quit"):
+                prefix = "q"
+            elif (o == "Back"):
+                prefix = "b"
+            else:
+                prefix = str(ordinal)
+            sPrint("[{}] {}".format(prefix, o))
+            ordinal += 1
 
 def main():
     global MAIN_LIST
     global WRITE_LIST
+    global MANAGE_LIST
     answer = ''
     while (not answer == 'q'):
         showMenu("Main Menu", MAIN_LIST)
@@ -435,6 +473,22 @@ def main():
                         if (answer != 'b'):
                             sPrint("Your input was not recognised.")
                             sPrint("Error detail (WRITE1): " + str(e))
+            elif (MAIN_LIST[answer - 1] == "Manage players"):
+                if (importAllData() is True):
+                    showMenu("Manage Menu", MANAGE_LIST)
+                    while (not answer == 'b'):
+                        answer = getInput()
+                        try:
+                            if (MANAGE_LIST[answer - 1] == "View player saves"):
+                                sPrint("This feature is still in development.")
+                            elif (MANAGE_LIST[answer - 1] == "Delete a player save"):
+                                sPrint("This feature is still in development.")
+                            elif (MANAGE_LIST[answer - 1] == "Delete all player saves"):
+                                sPrint("This feature is still in development.")
+                        except (TypeError, ValueError, IndexError) as e:
+                            if (answer != 'b'):
+                                sPrint("Your input was not recognised.")
+                                sPrint("Error detail (MANAGE1): " + str(e))
         except (TypeError, ValueError, IndexError) as e:
             if (answer != 'q'):
                 sPrint("Your input was not recognised.")
