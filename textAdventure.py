@@ -556,7 +556,22 @@ def managePlayers():
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (MANAGE1): " + str(e))
 
+def saveStory(new = False):
+    global FILENAME
+    if (new):
+        try:
+            with open(FILENAME + '.json', 'w') as writeFile:
+                json.dump({"progress": [], "content": []}, writeFile)
+            if (importAllData(FILENAME)):
+                return True
+        except (json.decoder.JSONDecodeError) as e:
+            nPrint(1)
+            sPrint("The save file could not be edited.")
+            sPrint("Error detail (STORY1): " + str(e))
+            return False
+
 def writeStory():
+    global FILENAME
     answer = ''
     while (not answer == 'b'):
         showMenu("Write Menu", WRITE_LIST)
@@ -564,7 +579,12 @@ def writeStory():
         try:
             answer = int(answer)
             if (WRITE_LIST[answer - 1] == "Create a new story"):
-                sPrint("This feature is still in development.")
+                sPrint("Please enter the file name for your story (no spaces)...")
+                filename = getInput()
+                FILENAME = filename
+                if (not saveStory(true)):
+                    nPrint(1)
+                    sPrint("File was unable to be created.")
             elif (WRITE_LIST[answer - 1] == "Load an existing story"):
                 sPrint("This feature is still in development.")
         except (TypeError, ValueError, IndexError) as e:
@@ -635,7 +655,6 @@ def mainMenu():
             if (answer != 'q'):
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (MAIN1): " + str(e))
-                traceback.print_exc()
 
 def main():
     mainMenu()
