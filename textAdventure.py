@@ -424,6 +424,40 @@ def importStory():
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (LOAD1): " + str(e))
 
+def managePlayers():
+    global MANAGE_LIST
+    showMenu("Manage Menu", MANAGE_LIST)
+    answer = ''
+    while (not answer == 'b'):
+        answer = getInput()
+        try:
+            if (MANAGE_LIST[answer - 1] == "View player saves"):
+                sPrint("This feature is still in development.")
+            elif (MANAGE_LIST[answer - 1] == "Delete a player save"):
+                sPrint("This feature is still in development.")
+            elif (MANAGE_LIST[answer - 1] == "Delete all player saves"):
+                sPrint("This feature is still in development.")
+        except (TypeError, ValueError, IndexError) as e:
+            if (answer != 'b'):
+                sPrint("Your input was not recognised.")
+                sPrint("Error detail (MANAGE1): " + str(e))
+
+def writeStory():
+    answer = ''
+    while (not answer == 'b'):
+        showMenu("Write Menu", WRITE_LIST)
+        answer = getInput()
+        try:
+            answer = int(answer)
+            if (WRITE_LIST[answer - 1] == "Create a new story"):
+                sPrint("This feature is still in development.")
+            elif (WRITE_LIST[answer - 1] == "Load an existing story"):
+                sPrint("This feature is still in development.")
+        except (TypeError, ValueError, IndexError) as e:
+            if (answer != 'b'):
+                sPrint("Your input was not recognised.")
+                sPrint("Error detail (WRITE1): " + str(e))
+
 def showMenu(menuName, menuList, subText = ""):
     global PLAYER
     nPrint(2)
@@ -448,7 +482,6 @@ def showMenu(menuName, menuList, subText = ""):
 def mainMenu():
     global MAIN_LIST
     global WRITE_LIST
-    global MANAGE_LIST
     answer = ''
     while (not answer == 'q'):
         showMenu("Main Menu", MAIN_LIST)
@@ -460,35 +493,10 @@ def mainMenu():
                     nPrint(1)
                     startGame()
             elif (MAIN_LIST[answer - 1] == "Write a story"):
-                while (not answer == 'b'):
-                    showMenu("Write Menu", WRITE_LIST)
-                    answer = getInput()
-                    try:
-                        answer = int(answer)
-                        if (WRITE_LIST[answer - 1] == "Create a new story"):
-                            sPrint("This feature is still in development.")
-                        elif (WRITE_LIST[answer - 1] == "Load an existing story"):
-                            sPrint("This feature is still in development.")
-                    except (TypeError, ValueError, IndexError) as e:
-                        if (answer != 'b'):
-                            sPrint("Your input was not recognised.")
-                            sPrint("Error detail (WRITE1): " + str(e))
+                writeStory()
             elif (MAIN_LIST[answer - 1] == "Manage players"):
                 if (importAllData() is True):
-                    showMenu("Manage Menu", MANAGE_LIST)
-                    while (not answer == 'b'):
-                        answer = getInput()
-                        try:
-                            if (MANAGE_LIST[answer - 1] == "View player saves"):
-                                sPrint("This feature is still in development.")
-                            elif (MANAGE_LIST[answer - 1] == "Delete a player save"):
-                                sPrint("This feature is still in development.")
-                            elif (MANAGE_LIST[answer - 1] == "Delete all player saves"):
-                                sPrint("This feature is still in development.")
-                        except (TypeError, ValueError, IndexError) as e:
-                            if (answer != 'b'):
-                                sPrint("Your input was not recognised.")
-                                sPrint("Error detail (MANAGE1): " + str(e))
+                    managePlayers()
         except (TypeError, ValueError, IndexError) as e:
             if (answer != 'q'):
                 sPrint("Your input was not recognised.")
