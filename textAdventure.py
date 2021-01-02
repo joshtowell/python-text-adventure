@@ -1,3 +1,4 @@
+import re
 import json
 import time
 import datetime as dt
@@ -30,6 +31,10 @@ LOAD_LIST = ["Load default story", "Load from a known file", "Back"]
 PROGRESS_LIST = ["Load progress using player name", "Start a new game", "Back"]
 MULTISAVE_LIST = ["Overwrite existing progress", "Create a new progress save", "Re-enter player name"]
 MANAGE_LIST = ["View player saves", "Delete a player save", "Delete all player saves", "Back"]
+
+def camelCaseSplit(string):
+    ## Seperates camel case words into sentence case string
+    return re.findall(r'[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))', string) 
 
 def getInput():
     print("")
@@ -446,15 +451,44 @@ def storyStats():
         playerStats.append([player.get('player'), playPercent])
     return {"Story Name": storyName, "Number of Positions": numPositions, "Number of Players": numPlayers, "Player Progression": playerStats}
 
+def playerInfo(player):
+    global PROGRESS
+    for p in PROGRESS:
+        if (p.get('player') == player):
+            nPrint(1)
+            sPrint("Name: " + p.get('player'))
+            sPrint("Last Played: " + p.get('lastPlayed'))
+            sPrint("Position: " + str(p.get('position')))
+            sPrint("State:")
+            for s in p.get('state'):
+                if (len(camelCaseSplit(s)) > 0):
+                    key = ' '.join(camelCaseSplit(s))
+                else:
+                    key = s[0].upper() + s[1:]
+                sPrint("    " + key + ": " + str(p.get('state').get(s)))
+            return True
+    nPrint(1)
+    sPrint("This player could not be found.")
+    return False
+
 def managePlayers():
     global MANAGE_LIST
-    showMenu("Manage Menu", MANAGE_LIST, subList = storyStats())
     answer = ''
     while (not answer == 'b'):
+        showMenu("Manage Menu", MANAGE_LIST, subList = storyStats())
         answer = getInput()
         try:
+            answer = int(answer)
             if (MANAGE_LIST[answer - 1] == "View player saves"):
-                sPrint("This feature is still in development.")
+##                try:
+##                    sPrint("Please select a story file by entering the file name only...")
+##                    filename = getInput()
+##                except (TypeError, ValueError, IndexError) as e:
+##                    sPrint("Your input was not recognised.")
+##                    sPrint("Error detail (MANAGE2): " + str(e))
+                sPrint("Please enter the existing player name...")
+                player = getInput()
+                playerInfo(player)
             elif (MANAGE_LIST[answer - 1] == "Delete a player save"):
                 sPrint("This feature is still in development.")
             elif (MANAGE_LIST[answer - 1] == "Delete all player saves"):
@@ -463,6 +497,7 @@ def managePlayers():
             if (answer != 'b'):
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (MANAGE1): " + str(e))
+                traceback.print_exc()
 
 def writeStory():
     answer = ''
