@@ -159,12 +159,14 @@ def loadPos(pos):
 def startGame():
     global HEAD_POS
     global STATE
+    global PLAYER
 
     ## Loop whole sequence
     answer = ""
     while (HEAD_POS > 0 and answer != 'q'):
-        ## Show player state
-        showPlayerState()
+        ## Show player info
+##        showPlayerState()
+##        playerInfo(PLAYER, items = ['name', 'state'])
         
         ## Load current object
         obj = loadPos(HEAD_POS)
@@ -211,6 +213,10 @@ def saveProgress():
         with open(FILENAME + '.json', 'r') as readFile:
             data = readFile.read()
             dataParsed = json.loads(data)
+            ## If no player progress at all
+            if (len(dataParsed['progress']) < 1):
+                dataParsed['progress'].append(createNewPlayer(dataParsed['progress']))
+                PLAYER_SAVED = "exists"
             for player in dataParsed['progress']:
                 if (player.get('player') == PLAYER):
                     ## Existing player finds existing progress
@@ -264,6 +270,7 @@ def saveProgress():
                             sPrint("Your input was not recognised.")
                             sPrint("Error detail (SAVE3): " + str(e))
                             return False
+                ## Add new player with no existing progress
                 else:
                     if (PLAYER_SAVED == "new"):
                         dataParsed['progress'].append(createNewPlayer(dataParsed['progress']))
@@ -456,21 +463,25 @@ def storyStats():
         playerStats.append([player.get('player'), playPercent])
     return {"Story Name": storyName, "Number of Positions": numPositions, "Number of Players": numPlayers, "Player Progression": playerStats}
 
-def playerInfo(player):
+def playerInfo(player, items = ['name', 'time', 'pos', 'state']):
     global PROGRESS
     for p in PROGRESS:
         if (p.get('player') == player):
             nPrint(1)
-            sPrint("Name: " + p.get('player'))
-            sPrint("Last Played: " + p.get('lastPlayed'))
-            sPrint("Position: " + str(p.get('position')))
-            sPrint("State:")
-            for s in p.get('state'):
-                if (len(camelCaseSplit(s)) > 0):
-                    key = ' '.join(camelCaseSplit(s))
-                else:
-                    key = s[0].upper() + s[1:]
-                sPrint("    " + key + ": " + str(p.get('state').get(s)))
+            if ('name' in items):
+                sPrint("Name: " + p.get('player'))
+            if ('time' in items):
+                sPrint("Last Played: " + p.get('lastPlayed'))
+            if ('pos' in items):
+                sPrint("Position: " + str(p.get('position')))
+            if ('state' in items):
+                sPrint("State:")
+                for s in p.get('state'):
+                    if (len(camelCaseSplit(s)) > 0):
+                        key = ' '.join(camelCaseSplit(s))
+                    else:
+                        key = s[0].upper() + s[1:]
+                    sPrint("    " + key + ": " + str(p.get('state').get(s)))
             return True
     nPrint(1)
     sPrint("This player could not be found.")
