@@ -424,9 +424,19 @@ def importStory():
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (LOAD1): " + str(e))
 
+def storyStats():
+    global CONTENT
+    global PROGRESS
+    global FILENAME
+    storyName = FILENAME
+    numPositions = len(CONTENT)
+    numPlayers = len(PROGRESS)
+    playerStats = ""
+    return {"storyName": storyName, "numPositions": numPositions, "numPlayers": numPlayers, "playerStats": playerStats}
+
 def managePlayers():
     global MANAGE_LIST
-    showMenu("Manage Menu", MANAGE_LIST)
+    showMenu("Manage Menu", MANAGE_LIST, storyStats())
     answer = ''
     while (not answer == 'b'):
         answer = getInput()
