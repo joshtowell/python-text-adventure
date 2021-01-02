@@ -216,7 +216,6 @@ def importProgress(dataParsed):
                             HEAD_POS = player.get('position')
                             STATE = player.get('state')
                             PLAYER = playerName
-                            print(PLAYER, HEAD_POS, STATE)
                             playerLoaded = True
                             return playerLoaded
                     nPrint(1)
@@ -229,6 +228,8 @@ def importProgress(dataParsed):
             elif (PROGRESS_LIST[answer - 1] == "Start a new game"):
                 sPrint("Please enter the new player name...")
                 playerName = getInput()
+                HEAD_POS = 1
+                STATE = {}
                 PLAYER = playerName
                 playerLoaded = True
                 return playerLoaded
