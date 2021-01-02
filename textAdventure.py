@@ -224,13 +224,19 @@ def saveProgress():
                                 playerName = getInput()
                                 try:
                                     for player in dataParsed['progress']:
-                                        if (player.get('player') == PLAYER):
+                                        if (player.get('player') == playerName):
                                             player['lastPlayed'] = str(dt.datetime.now())
                                             player['position'] = HEAD_POS
                                             player['state'] = STATE
+                                            PLAYER = playerName
                                             PLAYER_SAVED = "exists"
-                                    nPrint(1)
-                                    sPrint("This player could not be found.")
+                                    if (PLAYER_SAVED == "new"):
+                                        PLAYER = playerName
+                                        dataParsed['progress'].append(createNewPlayer(dataParsed['progress']))
+                                        PLAYER_SAVED = "exists"
+                                    else:
+                                        nPrint(1)
+                                        sPrint("This player could not be found.")
                                 except (json.decoder.JSONDecodeError) as e:
                                     nPrint(1)
                                     sPrint("This player could not be found.")
