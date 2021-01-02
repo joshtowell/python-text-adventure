@@ -1,0 +1,107 @@
+{
+	"progress": [
+        {
+            "id": 1,
+            "player": "jntowell",
+			"lastPlayed": "2021-01-01 19:04:18.795323",
+			"position": 2,
+            "state": {
+				"inventory": ["pencil"],
+				"health": 100
+			}
+        }
+    ],
+	"content": [
+        {
+            "id": 1,
+            "text": "You are in the woods.",
+            "options": [
+				{
+					"id": 1,
+					"text": "Go east",
+					"nextText": 2
+				},
+				{
+					"id": 2,
+					"text": "Go west",
+					"nextText": 3
+				}
+            ]
+        },
+        {
+            "id": 2,
+            "text": "You went east. There is a potion!",
+            "options": [
+				{
+					"id": 1,
+					"text": "Collect potion",
+					"setState": {"newInventory": "potion"},
+					"nextText": 4
+				},
+				{
+					"id": 2,
+					"text": "Leave potion",
+					"nextText": 4
+				}
+            ]
+        },
+		{
+            "id": 3,
+            "text": "You went west. There is a goblin!",
+            "options": [
+				{
+					"id": 1,
+					"text": "Fight the goblin",
+					"nextText": 4
+				},
+				{
+					"id": 2,
+					"text": "Run away",
+					"nextText": 4
+				}
+			]
+        },
+		{
+            "id": 4,
+            "text": "There's a wizard. He wants something from you!",
+            "options": [
+				{
+					"id": 1,
+					"text": "Give potion",
+					"setState": {"removeInventory": "potion"},
+					"requiredState": {"inventory": "potion"},
+					"nextText": 5
+				},
+				{
+					"id": 2,
+					"text": "Fight him",
+					"setState": {"health": -20},
+					"nextText": 5
+				},
+				{
+					"id": 3,
+					"text": "Run away",
+					"nextText": 5
+				}
+            ]
+        },
+		{
+            "id": 5,
+            "text": "You find a haunted house.",
+            "options": [
+				{
+					"id": 1,
+					"text": "Go straight in"
+				},
+				{
+					"id": 2,
+					"text": "Ask if anyone is home"
+				},
+				{
+					"id": 3,
+					"text": "Continue on path"
+				}
+            ]
+        }
+    ]
+}
