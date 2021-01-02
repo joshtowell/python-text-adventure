@@ -165,6 +165,9 @@ def startGame():
                 else:
                     nextText = HEAD_POS
                 updateState(chosenOption)
+                if (not saveProgress()):
+                    nPrint(1)
+                    sPrint("Progress save could not be made.")
         else:
             HEAD_POS = 1
             nPrint(1)
@@ -181,7 +184,7 @@ def saveProgress():
             dataParsed = json.loads(data)
             for player in dataParsed['progress']:
                 if (player.get('player') == PLAYER):
-                    player['lastPlayed'] = dt.datetime.now()
+                    player['lastPlayed'] = str(dt.datetime.now())
                     player['position'] = HEAD_POS
                     player['state'] = STATE
             try:
