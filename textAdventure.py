@@ -9,8 +9,9 @@ FILENAME = ""
 ## List for holding game content
 CONTENT = []
 
-## Player name as per story
+## Player name and save status as per story
 PLAYER = ""
+PLAYER_SAVED = "new"
 
 ## Head position based on ID
 HEAD_POS = 0
@@ -26,6 +27,7 @@ MAIN_LIST = ["Play a story", "Write a story", "Quit"]
 WRITE_LIST = ["Create a new story", "Load an existing story", "Back"]
 LOAD_LIST = ["Load default story", "Load from a known file", "Back"]
 PROGRESS_LIST = ["Load progress using player name", "Start a new game", "Back"]
+MULTISAVE_LIST = ["Overwrite existing progress", "Create a new progress save", "Re-enter player name"]
 
 def getInput():
     print("")
@@ -173,8 +175,17 @@ def startGame():
             nPrint(1)
             sPrint("Error loading position. Restarting sequence.")
 
+def createNewPlayer(players):
+    global PLAYER
+    newId = 1
+    for player in players:
+        if (player.get('id') > newId):
+            newId = player.get('id')
+    return {"id": newId + 1, "player": PLAYER, "lastPlayed": str(dt.datetime.now()), "position": HEAD_POS, "state": STATE}
+
 def saveProgress():
     global FILENAME
+    global PLAYER_SAVED
     global PLAYER
     global STATE
     global HEAD_POS
@@ -184,18 +195,64 @@ def saveProgress():
             dataParsed = json.loads(data)
             for player in dataParsed['progress']:
                 if (player.get('player') == PLAYER):
-                    player['lastPlayed'] = str(dt.datetime.now())
-                    player['position'] = HEAD_POS
-                    player['state'] = STATE
-            try:
-                with open(FILENAME + '40.json', 'w') as writeFile:
-                    json.dump(dataParsed, writeFile)
-                return True
-            except (json.decoder.JSONDecodeError) as e:
-                nPrint(1)
-                sPrint("The save file could not be edited.")
-                sPrint("Error detail (SAVE2): " + str(e))
-                return False
+                    ## Existing player finds existing progress
+                    if (PLAYER_SAVED == "exists"):
+                        player['lastPlayed'] = str(dt.datetime.now())
+                        player['position'] = HEAD_POS
+                        player['state'] = STATE
+                    ## New player has existing progress
+                    elif (PLAYER_SAVED == "new"):
+                        showMenu("Save Menu", MULTISAVE_LIST)
+                        answer = getInput()
+                        try:
+                            answer = int(answer)
+                            if (MULTISAVE_LIST[answer - 1] == "Overwrite existing progress"):
+                                player['lastPlayed'] = str(dt.datetime.now())
+                                player['position'] = HEAD_POS
+                                player['state'] = STATE
+                                PLAYER_SAVED = "exists"
+                            elif (MULTISAVE_LIST[answer - 1] == "Create a new progress save"):
+                                existingCount = 0
+                                for player in dataParsed['progress']:
+                                    if (player.get('player') == playerName):
+                                        existingCount += 1
+                                PLAYER = PLAYER + str(existingCount + 1)
+                                dataParsed['progress'].append(createNewPlayer(dataParsed['progress']))
+                                PLAYER_SAVED = "exists"
+                            elif (MULTISAVE_LIST[answer - 1] == "Re-enter player name"):
+                                sPrint("Please enter the existing player name...")
+                                playerName = getInput()
+                                try:
+                                    for player in dataParsed['progress']:
+                                        if (player.get('player') == playerName):
+                                            player['lastPlayed'] = str(dt.datetime.now())
+                                            player['position'] = HEAD_POS
+                                            player['state'] = STATE
+                                            PLAYER_SAVED = "exists"
+                                    nPrint(1)
+                                    sPrint("This player could not be found.")
+                                except (json.decoder.JSONDecodeError) as e:
+                                    nPrint(1)
+                                    sPrint("This player could not be found.")
+                                    sPrint("Error detail (SAVE4): " + str(e))
+                                    return False
+                        except (TypeError, ValueError, IndexError) as e:
+                            sPrint("Your input was not recognised.")
+                            sPrint("Error detail (SAVE3): " + str(e))
+                            return False
+                else:
+                    if (PLAYER_SAVED == "new"):
+                        dataParsed['progress'].append(createNewPlayer(dataParsed['progress']))
+                        PLAYER_SAVED = "exists"
+        try:
+            with open(FILENAME + '.json', 'w') as writeFile:
+                json.dump(dataParsed, writeFile)
+            return True
+        except (json.decoder.JSONDecodeError) as e:
+            nPrint(1)
+            sPrint("The save file could not be edited.")
+            sPrint("Error detail (SAVE2): " + str(e))
+            return False
     except (FileNotFoundError) as e:
         nPrint(1)
         sPrint("The save file was not found.")
@@ -204,6 +261,7 @@ def saveProgress():
     return False
 
 def importProgress(dataParsed):
+    global PLAYER_SAVED
     global PLAYER
     global STATE
     global HEAD_POS
@@ -221,6 +279,7 @@ def importProgress(dataParsed):
                 try:
                     for player in dataParsed['progress']:
                         if (player.get('player') == playerName):
+                            PLAYER_SAVED = "exists"
                             HEAD_POS = player.get('position')
                             STATE = player.get('state')
                             PLAYER = playerName
@@ -236,6 +295,7 @@ def importProgress(dataParsed):
             elif (PROGRESS_LIST[answer - 1] == "Start a new game"):
                 sPrint("Please enter the new player name...")
                 playerName = getInput()
+                PLAYER_SAVED = "new"
                 HEAD_POS = 1
                 STATE = {}
                 PLAYER = playerName
