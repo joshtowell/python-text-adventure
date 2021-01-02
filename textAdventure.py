@@ -202,7 +202,7 @@ def saveProgress():
                         player['state'] = STATE
                     ## New player has existing progress
                     elif (PLAYER_SAVED == "new"):
-                        showMenu("Save Menu", MULTISAVE_LIST)
+                        showMenu("Save Menu", MULTISAVE_LIST, "There is already a progress save for this player.")
                         answer = getInput()
                         try:
                             answer = int(answer)
@@ -214,7 +214,7 @@ def saveProgress():
                             elif (MULTISAVE_LIST[answer - 1] == "Create a new progress save"):
                                 existingCount = 0
                                 for player in dataParsed['progress']:
-                                    if (player.get('player') == playerName):
+                                    if (player.get('player').startswith(PLAYER)):
                                         existingCount += 1
                                 PLAYER = PLAYER + str(existingCount + 1)
                                 dataParsed['progress'].append(createNewPlayer(dataParsed['progress']))
@@ -224,7 +224,7 @@ def saveProgress():
                                 playerName = getInput()
                                 try:
                                     for player in dataParsed['progress']:
-                                        if (player.get('player') == playerName):
+                                        if (player.get('player') == PLAYER):
                                             player['lastPlayed'] = str(dt.datetime.now())
                                             player['position'] = HEAD_POS
                                             player['state'] = STATE
@@ -350,9 +350,11 @@ def importStory():
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (LOAD1): " + str(e))
 
-def showMenu(menuName, menuList):
+def showMenu(menuName, menuList, subText = ""):
     nPrint(2)
     sPrint("===| " + menuName + " |===")
+    if (len(subText) > 0):
+        sPrint(subText)
     sPrint("Please select an option:")
     ordinal = 1
     for o in menuList:
