@@ -1,5 +1,6 @@
 import json
 import time
+import datetime as dt
 import traceback    ## Allows visual of errors -> traceback.print_exc()
 
 ## Name of file containing progress and content
@@ -175,25 +176,29 @@ def saveProgress():
     global STATE
     global HEAD_POS
     try:
-        with open(FILENAME + '.json', 'w') as myFile:
-            data = myFile.read()
+        with open(FILENAME + '.json', 'r') as readFile:
+            data = readFile.read()
+            dataParsed = json.loads(data)
+            for player in dataParsed['progress']:
+                if (player.get('player') == PLAYER):
+                    player['lastPlayed'] = dt.datetime.now()
+                    player['position'] = HEAD_POS
+                    player['state'] = STATE
             try:
-                dataParsed = json.loads(data)
-                CONTENT.append(dataParsed['content'])
-                FILENAME = filename
-                fileLoaded = True
-                playerLoaded = importProgress(dataParsed)
-                return fileLoaded and playerLoaded
+                with open(FILENAME + '.json', 'w') as writeFile:
+                    json.dump(dataParsed, writeFile)
+                return True
             except (json.decoder.JSONDecodeError) as e:
                 nPrint(1)
                 sPrint("The save file could not be edited.")
                 sPrint("Error detail (SAVE2): " + str(e))
-                return fileLoaded
+                return False
     except (FileNotFoundError) as e:
         nPrint(1)
         sPrint("The save file was not found.")
         sPrint("Error detail (SAVE1): " + str(e))
-        return fileLoaded
+        return False
+    return False
 
 def importProgress(dataParsed):
     global PLAYER
