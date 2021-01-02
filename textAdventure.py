@@ -146,7 +146,7 @@ def getOption(options, answer):
 
 def loadPos(pos):
     global CONTENT
-    for obj in CONTENT[0]:
+    for obj in CONTENT:
         if (pos == obj.get('id')):
             return obj
     return {}
@@ -297,8 +297,8 @@ def importAllData():
                 data = myFile.read()
                 try:
                     dataParsed = json.loads(data)
-                    CONTENT.append(dataParsed['content'])
-                    PROGRESS.append(dataParsed['progress'])
+                    CONTENT = dataParsed['content']
+                    PROGRESS = dataParsed['progress']
                     FILENAME = filename
                     fileLoaded = True
                     return fileLoaded
@@ -404,7 +404,7 @@ def importStory():
                     data = myFile.read()
                     try:
                         dataParsed = json.loads(data)
-                        CONTENT.append(dataParsed['content'])
+                        CONTENT = dataParsed['content']
                         FILENAME = filename
                         fileLoaded = True
                         playerLoaded = importProgress(dataParsed)
@@ -431,12 +431,24 @@ def storyStats():
     storyName = FILENAME
     numPositions = len(CONTENT)
     numPlayers = len(PROGRESS)
-    playerStats = ""
-    return {"storyName": storyName, "numPositions": numPositions, "numPlayers": numPlayers, "playerStats": playerStats}
+    playerStats = []
+    for player in PROGRESS:
+        try:
+            percent = int((player.get('position') / numPositions) * 100)
+            playPercent = ""
+            if (percent < 10):
+                playPercent = '  '
+            elif (percent < 100):
+                playPercent = ' '
+            playPercent += str(percent) + "%"
+        except:
+            playPercent = "  0%"
+        playerStats.append([player.get('player'), playPercent])
+    return {"Story Name": storyName, "Number of Positions": numPositions, "Number of Players": numPlayers, "Player Progression": playerStats}
 
 def managePlayers():
     global MANAGE_LIST
-    showMenu("Manage Menu", MANAGE_LIST, storyStats())
+    showMenu("Manage Menu", MANAGE_LIST, subList = storyStats())
     answer = ''
     while (not answer == 'b'):
         answer = getInput()
@@ -468,7 +480,13 @@ def writeStory():
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (WRITE1): " + str(e))
 
-def showMenu(menuName, menuList, subText = ""):
+def createBlankLong(length):
+    blank = ""
+    for i in range(length):
+        blank += ' '
+    return blank
+
+def showMenu(menuName, menuList, subText = "", subList = []):
     global PLAYER
     nPrint(2)
     sPrint("===| " + menuName + " |===")
@@ -476,6 +494,20 @@ def showMenu(menuName, menuList, subText = ""):
         sPrint("Player: " + PLAYER)
     if (len(subText) > 0):
         sPrint(subText)
+    if (len(subList) > 0):
+        nPrint(1)
+        for i in subList:
+            if (i == "Player Progression"):
+                sPrint(i + ":")
+                longest = 0
+                for p in subList.get(i):
+                    if (len(p[0]) > longest):
+                        longest = len(p[0])
+                for p in subList.get(i):
+                    sPrint("    " + p[0] + createBlankLong(longest + 3 - len(p[0])) + p[1])
+            else:
+                sPrint(i + ": " + str(subList[i]))
+        nPrint(1)
     if (len(menuList) > 0):
         sPrint("Please select an option:")
         ordinal = 1
@@ -511,6 +543,7 @@ def mainMenu():
             if (answer != 'q'):
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (MAIN1): " + str(e))
+                traceback.print_exc()
 
 def main():
     mainMenu()
