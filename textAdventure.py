@@ -580,17 +580,30 @@ def managePlayers():
 
 def saveStory(new = False):
     global FILENAME
-    if (new):
-        try:
-            with open(FILENAME + '.json', 'w') as writeFile:
+    try:
+        if (not new):
+            with open(FILENAME + '.json', 'r') as readFile:
+                data = readFile.read()
+                try:
+                    dataParsed = json.loads(data)
+                    PROGRESS = dataParsed['progress']
+                    FILENAME = filename
+                except (json.decoder.JSONDecodeError, FileNotFoundError) as e:
+                    nPrint(1)
+                    sPrint("This file could not be read.")
+                    sPrint("Error detail (STORY2): " + str(e))
+                    return False
+        with open(FILENAME + '.json', 'w') as writeFile:
+            if (new):
                 json.dump({"progress": [], "content": []}, writeFile)
-            if (importAllData(FILENAME)):
-                return True
-        except (json.decoder.JSONDecodeError) as e:
-            nPrint(1)
-            sPrint("The save file could not be edited.")
-            sPrint("Error detail (STORY1): " + str(e))
-            return False
+            else:
+                json.dump({"progress": PROGRESS, "content": CONTENT}, writeFile)
+        return True
+    except (json.decoder.JSONDecodeError, FileNotFoundError) as e:
+        nPrint(1)
+        sPrint("The save file could not be edited.")
+        sPrint("Error detail (STORY1): " + str(e))
+        return False
 
 def writeStory():
     global FILENAME
@@ -604,7 +617,7 @@ def writeStory():
                 sPrint("Please enter the file name for your story (no spaces)...")
                 filename = getInput()
                 FILENAME = filename
-                if (not saveStory(true)):
+                if (not saveStory(True)):
                     nPrint(1)
                     sPrint("File was unable to be created.")
             elif (WRITE_LIST[answer - 1] == "Load an existing story"):
