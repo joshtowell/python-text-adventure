@@ -284,7 +284,7 @@ def saveProgress():
         return False
     return False
 
-def importAllData():
+def importAllData(existFilename = ""):
     global FILENAME
     global LOAD_LIST
     global CONTENT
@@ -293,9 +293,12 @@ def importAllData():
     fileLoaded = False
     while (not fileLoaded):
         ## Get filename
-        showMenu("Load Menu", [])
-        sPrint("Please select a story file by entering the file name only...")
-        filename = getInput()
+        if (len(existFilename) > 0):
+            filename = existFilename
+        else:
+            showMenu("Load Menu", [])
+            sPrint("Please select a story file by entering the file name only...")
+            filename = getInput()
         ## Load file
         try:
             with open(filename + '.json', 'r') as myFile:
@@ -471,33 +474,57 @@ def playerInfo(player):
     sPrint("This player could not be found.")
     return False
 
+def getPlayerObj(player):
+    global PROGRESS
+    for p in PROGRESS:
+        if (p.get('player') == player):
+            return p
+    return False
+
+def playerDelete(player):
+    global PROGRESS
+    global FILENAME
+    playerObj = getPlayerObj(player)
+    PROGRESS.remove(playerObj)
+    try:
+        with open(FILENAME + '.json', 'w') as writeFile:
+            json.dump({"progress": PROGRESS, "content": CONTENT}, writeFile)
+        if (importAllData(FILENAME)):
+            return True
+    except (json.decoder.JSONDecodeError) as e:
+        nPrint(1)
+        sPrint("The save file could not be edited.")
+        sPrint("Error detail (SAVE2): " + str(e))
+        return False
+
 def managePlayers():
     global MANAGE_LIST
-    answer = ''
+    answer = ""
     while (not answer == 'b'):
         showMenu("Manage Menu", MANAGE_LIST, subList = storyStats())
         answer = getInput()
         try:
             answer = int(answer)
             if (MANAGE_LIST[answer - 1] == "View player saves"):
-##                try:
-##                    sPrint("Please select a story file by entering the file name only...")
-##                    filename = getInput()
-##                except (TypeError, ValueError, IndexError) as e:
-##                    sPrint("Your input was not recognised.")
-##                    sPrint("Error detail (MANAGE2): " + str(e))
                 sPrint("Please enter the existing player name...")
                 player = getInput()
                 playerInfo(player)
             elif (MANAGE_LIST[answer - 1] == "Delete a player save"):
-                sPrint("This feature is still in development.")
+                sPrint("Please enter the existing player name...")
+                player = getInput()
+                if (getPlayerObj(player)):
+                    sPrint("ARE YOU SURE YOU WANT TO PERMENANTLY DELETE " + player + "'s PROGRESS? (yes/no)...")
+                    if (getInput() == "yes"):
+                        if (not playerDelete(player)):
+                            nPrint(1)
+                            sPrint("Player progress was unable to be deleted.")
             elif (MANAGE_LIST[answer - 1] == "Delete all player saves"):
                 sPrint("This feature is still in development.")
         except (TypeError, ValueError, IndexError) as e:
             if (answer != 'b'):
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (MANAGE1): " + str(e))
-                traceback.print_exc()
+    print("WHY")
 
 def writeStory():
     answer = ''
