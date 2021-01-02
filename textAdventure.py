@@ -440,6 +440,8 @@ def storyStats():
     numPositions = len(CONTENT)
     numPlayers = len(PROGRESS)
     playerStats = []
+    if (numPlayers < 1):
+        playerStats = [[" [Empty]", ""]]
     for player in PROGRESS:
         try:
             percent = int((player.get('position') / numPositions) * 100)
@@ -496,6 +498,20 @@ def playerDelete(player):
         sPrint("The save file could not be edited.")
         sPrint("Error detail (SAVE2): " + str(e))
         return False
+    
+def clearProgress():
+    global PROGRESS
+    global FILENAME
+    try:
+        with open(FILENAME + '.json', 'w') as writeFile:
+            json.dump({"progress": [], "content": CONTENT}, writeFile)
+        if (importAllData(FILENAME)):
+            return True
+    except (json.decoder.JSONDecodeError) as e:
+        nPrint(1)
+        sPrint("The save file could not be edited.")
+        sPrint("Error detail (SAVE2): " + str(e))
+        return False
 
 def managePlayers():
     global MANAGE_LIST
@@ -513,18 +529,21 @@ def managePlayers():
                 sPrint("Please enter the existing player name...")
                 player = getInput()
                 if (getPlayerObj(player)):
-                    sPrint("ARE YOU SURE YOU WANT TO PERMENANTLY DELETE " + player + "'s PROGRESS? (yes/no)...")
+                    sPrint("Are you sure you want to PERMENANTLY DELETE " + player + "'s progress? (yes/no)...")
                     if (getInput() == "yes"):
                         if (not playerDelete(player)):
                             nPrint(1)
                             sPrint("Player progress was unable to be deleted.")
             elif (MANAGE_LIST[answer - 1] == "Delete all player saves"):
-                sPrint("This feature is still in development.")
+                sPrint("Are you sure you want to PERMENANTLY DELETE ALL player progress? (yes/no)...")
+                if (getInput() == "yes"):
+                    if (not clearProgress()):
+                        nPrint(1)
+                        sPrint("Progress was unable to be deleted.")
         except (TypeError, ValueError, IndexError) as e:
             if (answer != 'b'):
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (MANAGE1): " + str(e))
-    print("WHY")
 
 def writeStory():
     answer = ''
