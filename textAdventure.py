@@ -61,7 +61,21 @@ def sPrint(text):
 def showPlayerState():
     global PLAYER
     global STATE
-    sPrint(PLAYER)
+    sPrint(createBlankLong(len(PLAYER) + 1, char = '='))
+    sPrint(PLAYER.upper())
+    longest = len(PLAYER)
+    for s in STATE:
+        totalLength = len(' '.join(camelCaseSplit(s))) + len(str(STATE.get(s))) + 15
+        if (totalLength > longest):
+            longest = totalLength
+    sPrint(createBlankLong(longest + 1, char = '='))
+    for s in STATE:
+        if (len(camelCaseSplit(s)) > 0):
+            key = ' '.join(camelCaseSplit(s))
+        else:
+            key = s[0].upper() + s[1:]
+        sPrint("    " + key + ": " + str(STATE.get(s)))
+    sPrint(createBlankLong(longest + 1, char = '='))
     nPrint(1)
 
 def showText(textText):
@@ -114,6 +128,7 @@ def checkAllowedFromReq(reqState):
 
 def updateState(opt):
     global STATE
+    global HEAD_POS
     optState = opt.get('setState')
     ## If setState is present, apply each state change
     if (optState):
@@ -136,8 +151,12 @@ def updateState(opt):
                     nPrint(1)
                     sPrint("Error loading state.")
                     sPrint("Error detail (UPDATE1): " + str(e))
+            elif (req == 'endGame'):
+                if (optState.get('endGame')):
+                    return 'q'
             else:
-                STATE[req] = optState.get(req)                    
+                STATE[req] = optState.get(req)
+    return ''
 
 def getOption(options, answer):
     ordinal = 0
@@ -164,9 +183,9 @@ def startGame():
     ## Loop whole sequence
     answer = ""
     while (HEAD_POS > 0 and answer != 'q'):
-        ## Show player info
-##        showPlayerState()
-##        playerInfo(PLAYER, items = ['name', 'state'])
+        nPrint(1)
+        ## Show player state
+        showPlayerState()
         
         ## Load current object
         obj = loadPos(HEAD_POS)
@@ -184,7 +203,8 @@ def startGame():
                 if (chosenOption and answer != 'q'):
                     nextText = getNextText(chosenOption)
                     HEAD_POS = nextText
-                    updateState(chosenOption)
+                    ## If end game then answer set to 'q'
+                    answer = updateState(chosenOption)
                 else:
                     nextText = HEAD_POS
                 if (not saveProgress()):
@@ -194,7 +214,9 @@ def startGame():
             HEAD_POS = 1
             nPrint(1)
             sPrint("Error loading position. Restarting sequence.")
-
+    nPrint(1)
+    sPrint("|>>> END OF GAME <<<|")
+    
 def createNewPlayer(players):
     global PLAYER
     newId = 1
@@ -592,10 +614,10 @@ def writeStory():
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (WRITE1): " + str(e))
 
-def createBlankLong(length):
+def createBlankLong(length, char = ' '):
     blank = ""
     for i in range(length):
-        blank += ' '
+        blank += char
     return blank
 
 def showMenu(menuName, menuList, subText = "", subList = []):
