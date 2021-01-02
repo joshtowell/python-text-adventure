@@ -188,7 +188,7 @@ def saveProgress():
                     player['position'] = HEAD_POS
                     player['state'] = STATE
             try:
-                with open(FILENAME + '.json', 'w') as writeFile:
+                with open(FILENAME + '40.json', 'w') as writeFile:
                     json.dump(dataParsed, writeFile)
                 return True
             except (json.decoder.JSONDecodeError) as e:
