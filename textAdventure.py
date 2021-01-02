@@ -10,7 +10,7 @@ FILENAME = ""
 CONTENT = []
 
 ## Player name and save status as per story
-PLAYER = ""
+PLAYER = "jntowell"     ## TEMP VALUE
 PLAYER_SAVED = "new"
 
 ## Head position based on ID
@@ -50,6 +50,12 @@ def sPrint(text):
         print(c, end = "")
         time.sleep(duration)
     print("")
+
+def showPlayerState():
+    global PLAYER
+    global STATE
+    sPrint(PLAYER)
+    nPrint(1)
 
 def showText(textText):
     sPrint(textText + "\n")
@@ -150,7 +156,9 @@ def startGame():
     ## Loop whole sequence
     answer = ""
     while (HEAD_POS > 0 and answer != 'q'):
-        print("INVENTORY:", STATE)  ##TEMP
+        ## Show player state
+        showPlayerState()
+        
         ## Load current object
         obj = loadPos(HEAD_POS)
         objText = obj.get('text')
@@ -279,9 +287,9 @@ def importProgress(dataParsed):
     playerName = ""
     playerLoaded = False
     while (not playerLoaded and answer != 'b'):
-        if (len(PLAYER) > 0 and (not "Load progress using current player" in PROGRESS_LIST)):
+        if (len(PLAYER) > 0 and not ( "Load progress using current player" in PROGRESS_LIST)):
             PROGRESS_LIST.insert(0, "Load progress using current player")
-        elif ("Load progress using current player" in PROGRESS_LIST):
+        elif (len(PLAYER) < 1 and ("Load progress using current player" in PROGRESS_LIST)):
             PROGRESS_LIST.remove("Load progress using current player")
         showMenu("Player Menu", PROGRESS_LIST)
         answer = getInput()
