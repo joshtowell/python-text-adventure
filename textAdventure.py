@@ -445,7 +445,7 @@ def showMenu(menuName, menuList, subText = ""):
             sPrint("[{}] {}".format(prefix, o))
             ordinal += 1
 
-def main():
+def mainMenu():
     global MAIN_LIST
     global WRITE_LIST
     global MANAGE_LIST
@@ -493,6 +493,9 @@ def main():
             if (answer != 'q'):
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (MAIN1): " + str(e))
+
+def main():
+    mainMenu()
     sPrint("Thanks for playing!")
     nPrint(1)
 
