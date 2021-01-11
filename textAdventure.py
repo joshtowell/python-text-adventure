@@ -607,7 +607,7 @@ def saveStory(new = False):
         sPrint("Error detail (STORY1): " + str(e))
         return False
 
-def heightestId(listObj = CONTENT):
+def highestId(listObj = CONTENT):
     global CONTENT
     highestId = 0
     for i in listObj:
@@ -624,29 +624,48 @@ def addToPosition(newId = 0, newText = "", newOption = {}):
             break
     if (len(position) < 1 and newId > 0):
         position = {'id': newId, 'text':"", 'options':{}}
+        if (len(newText) < 1):
+            saveObj(position)
+            return True
     else:
         sPrint("Unable to save position ID.")
         return False
     if (len(newText) > 0):
         position['text'] = newText
+        saveObj(position)
+        return True
     else:
         sPrint("Unable to save position text.")
         return False
     if (len(options) > 0):
         position['options'].append(newOption)
+        saveObj(position)
+        return True
     else:
         sPrint("Unable to save position text.")
         return False
-    savePosObj(position)
+    saveObj(position)
     return True
 
-def addToOption():
+def addToOption(posId, newId = 0, newText = "", newList = []):
     option = {}
     if (newId > 0):
         option = {'id': newId, 'text':""}
+        if (len(newText) < 1):
+            saveObj(option, listObj = getPosObj(posId).get('options'))
+            return True
     else:
         sPrint("Unable to save option ID.")
         return False
+    if (len(newText) > 0):
+        option['text'] = newText
+        saveObj(option, listObj = getPosObj(posId).get('options'))
+        return True
+    else:
+        sPrint("Unable to save option text.")
+        return False
+    saveObj(option, listObj = getPosObj(posId).get('options'))
+    return True
 
 def getPosObj(posId):
     global CONTENT
@@ -655,13 +674,13 @@ def getPosObj(posId):
             return i
     sPrint("Position could not be loaded.")
 
-def savePosObj(posObj):
+def saveObj(obj, listObj = CONTENT):
     global CONTENT
-    for i in CONTENT:
-        if (i.get('id') and i.get('id') == posObj['id']):
-            CONTENT[i] = posObj
+    for i in listObj:
+        if (i.get('id') and i.get('id') == obj['id']):
+            listObj[i] = obj
             return True
-    sPrint("Position could not be loaded.")
+    sPrint("Object could not be saved.")
     return False
 
 def writePosition(newId = 0, newText = "", newOption = {}):
@@ -675,15 +694,19 @@ def writePosition(newId = 0, newText = "", newOption = {}):
             if (addToPosition(newId = newId)):
                 sPrint("Please enter the position text (story and question)...")
                 newText = str(getInput())
-                if (addToPosition(newText = newText)):
+                if (addToPosition(newId = newId, newText = newText)):
                     sPrint("Please enter the number of options you wish to add for this position...".format(highestId()))
                     optionCount = int(getInput())
                     while (optionCount > 0):
                         posObj = getPosObj(newId)
-                        optId = heightestId(listObj = len(posObj.get('options')) + 1)
-                        newOption = writeOption(optionCount)
-                        if (addToPosition(newOption = newOption)):
-                            optionCount -= 1
+                        if (posObj):
+                            optId = highestId(listObj = len(posObj.get('options')) + 1)
+                            if (addToOption(newId, newId = optId)):
+                                sPrint("Please enter the option text...")
+                                optText = str(getInput())
+                                if (addToOption(newId, newId = optId)):
+                                    if (addToPosition(newId = newId, newOption = newOption)):
+                                        optionCount -= 1
         except (TypeError, ValueError, IndexError) as e:
             sPrint("Your input was not recognised.")
             sPrint("Error detail (EDIT1): " + str(e))
@@ -726,8 +749,8 @@ def writeStory():
                 if (not saveStory(True)):
                     nPrint(1)
                     sPrint("File was unable to be created.")
-                    while ():   ## HELP
-                        writePosition()
+##                    while ():   ## HELP
+                writePosition()
             elif (WRITE_LIST[answer - 1] == "Create a story from an existing text"):
                 sPrint("This feature is still in development.")
             elif (WRITE_LIST[answer - 1] == "Load an existing story"):
