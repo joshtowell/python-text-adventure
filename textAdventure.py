@@ -607,28 +607,65 @@ def saveStory(new = False):
         sPrint("Error detail (STORY1): " + str(e))
         return False
 
-##def writePosition():
-##    answer = ''
-##    while (not answer == 'b'):
-##        showMenu("Write Menu", WRITE_LIST)
-##        answer = getInput()
-##        try:
-##            answer = int(answer)
-##            if (WRITE_LIST[answer - 1] == "Create a new story"):
-##                sPrint("Please enter the file name for your story (no spaces)...")
-##                filename = getInput()
-##                FILENAME = filename
-##                if (not saveStory(True)):
-##                    nPrint(1)
-##                    sPrint("File was unable to be created.")
-##            elif (WRITE_LIST[answer - 1] == "Create a story from an existing text"):
-##                sPrint("This feature is still in development.")
-##            elif (WRITE_LIST[answer - 1] == "Load an existing story"):
-##                sPrint("This feature is still in development.")
-##        except (TypeError, ValueError, IndexError) as e:
-##            if (answer != 'b'):
-##                sPrint("Your input was not recognised.")
-##                sPrint("Error detail (WRITE1): " + str(e))
+def heightestId(listObj = CONTENT):
+    global CONTENT
+    highestId = 0
+    for i in listObj:
+        if (i.get('id') and i.get('id') > highestId):
+            highestId = i.get('id')
+    return highestId
+
+def addToPosition(newId = 0, newText = "", newOption = {}):
+    global CONTENT
+    position = {}
+    for i in CONTENT:
+        if (i.get('id') and newId > 0 and i.get('id') == newId):
+            position = i
+            break
+    if (len(position) < 1 and newId > 0):
+        position = {'id': newId, 'text':"", 'options':{}}
+    else:
+        sPrint("Unable to save position ID.")
+        return False
+    if (len(newText) > 0):
+        position['text'] = newText
+    else:
+        sPrint("Unable to save position text.")
+        return False
+    if (len(options) > 0):
+        position['options'].append(newOption)
+    else:
+        sPrint("Unable to save position text.")
+        return False
+    return True
+
+def addToOption():
+    option = {}
+    if (newId > 0):
+        option = {'id': newId, 'text':""}
+    else
+
+def writePosition(newId = 0, newText = "", newOption = {}):
+    answer = ''
+    allValid = False
+    while (not allValid):
+        showMenu("Edit Menu", [])
+        try:
+            sPrint("Please enter the position ID (current highest ID is '{}')...".format(highestId()))
+            newId = int(getInput())
+            if (addToPosition(newId = newId)):
+                sPrint("Please enter the position text (story and question)...")
+                newText = str(getInput())
+                if (addToPosition(newText = newText)):
+                    sPrint("Please enter the number of options you wish to add for this position...".format(highestId()))
+                    optionCount = int(getInput())
+                    while (optionCount > 0):
+                        newOption = writeOption(optionCount)
+                        if (addToPosition(newOption = newOption)):
+                            optionCount -= 1
+        except (TypeError, ValueError, IndexError) as e:
+            sPrint("Your input was not recognised.")
+            sPrint("Error detail (EDIT1): " + str(e))
 
 ##def positionMenu():
 ##    answer = ''
@@ -668,6 +705,8 @@ def writeStory():
                 if (not saveStory(True)):
                     nPrint(1)
                     sPrint("File was unable to be created.")
+                    while ():   ## HELP
+                        writePosition()
             elif (WRITE_LIST[answer - 1] == "Create a story from an existing text"):
                 sPrint("This feature is still in development.")
             elif (WRITE_LIST[answer - 1] == "Load an existing story"):
