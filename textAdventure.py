@@ -637,13 +637,32 @@ def addToPosition(newId = 0, newText = "", newOption = {}):
     else:
         sPrint("Unable to save position text.")
         return False
+    savePosObj(position)
     return True
 
 def addToOption():
     option = {}
     if (newId > 0):
         option = {'id': newId, 'text':""}
-    else
+    else:
+        sPrint("Unable to save option ID.")
+        return False
+
+def getPosObj(posId):
+    global CONTENT
+    for i in CONTENT:
+        if (i.get('id') and i.get('id') == posID):
+            return i
+    sPrint("Position could not be loaded.")
+
+def savePosObj(posObj):
+    global CONTENT
+    for i in CONTENT:
+        if (i.get('id') and i.get('id') == posObj['id']):
+            CONTENT[i] = posObj
+            return True
+    sPrint("Position could not be loaded.")
+    return False
 
 def writePosition(newId = 0, newText = "", newOption = {}):
     answer = ''
@@ -660,6 +679,8 @@ def writePosition(newId = 0, newText = "", newOption = {}):
                     sPrint("Please enter the number of options you wish to add for this position...".format(highestId()))
                     optionCount = int(getInput())
                     while (optionCount > 0):
+                        posObj = getPosObj(newId)
+                        optId = heightestId(listObj = len(posObj.get('options')) + 1)
                         newOption = writeOption(optionCount)
                         if (addToPosition(newOption = newOption)):
                             optionCount -= 1
