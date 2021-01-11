@@ -26,7 +26,7 @@ SLOWMODE = False
 
 ## Menu option lists
 MAIN_LIST = ["Play a story", "Write a story", "Manage players", "Quit"]
-WRITE_LIST = ["Create a new story", "Load an existing story", "Back"]
+WRITE_LIST = ["Create a new story", "Create a story from an existing text", "Load an existing story", "Back"]
 LOAD_LIST = ["Load default story", "Load from a known file", "Back"]
 PROGRESS_LIST = ["Load progress using player name", "Start a new game", "Back"]
 MULTISAVE_LIST = ["Overwrite existing progress", "Create a new progress save", "Re-enter player name"]
@@ -580,6 +580,8 @@ def managePlayers():
 
 def saveStory(new = False):
     global FILENAME
+    global PROGRESS
+    global CONTENT
     try:
         if (not new):
             with open(FILENAME + '.json', 'r') as readFile:
@@ -595,15 +597,61 @@ def saveStory(new = False):
                     return False
         with open(FILENAME + '.json', 'w') as writeFile:
             if (new):
-                json.dump({"progress": [], "content": []}, writeFile)
-            else:
-                json.dump({"progress": PROGRESS, "content": CONTENT}, writeFile)
+                PROGRESS = []
+                CONTENT = []
+            json.dump({"progress": PROGRESS, "content": CONTENT}, writeFile)
         return True
     except (json.decoder.JSONDecodeError, FileNotFoundError) as e:
         nPrint(1)
         sPrint("The save file could not be edited.")
         sPrint("Error detail (STORY1): " + str(e))
         return False
+
+##def writePosition():
+##    answer = ''
+##    while (not answer == 'b'):
+##        showMenu("Write Menu", WRITE_LIST)
+##        answer = getInput()
+##        try:
+##            answer = int(answer)
+##            if (WRITE_LIST[answer - 1] == "Create a new story"):
+##                sPrint("Please enter the file name for your story (no spaces)...")
+##                filename = getInput()
+##                FILENAME = filename
+##                if (not saveStory(True)):
+##                    nPrint(1)
+##                    sPrint("File was unable to be created.")
+##            elif (WRITE_LIST[answer - 1] == "Create a story from an existing text"):
+##                sPrint("This feature is still in development.")
+##            elif (WRITE_LIST[answer - 1] == "Load an existing story"):
+##                sPrint("This feature is still in development.")
+##        except (TypeError, ValueError, IndexError) as e:
+##            if (answer != 'b'):
+##                sPrint("Your input was not recognised.")
+##                sPrint("Error detail (WRITE1): " + str(e))
+
+##def positionMenu():
+##    answer = ''
+##    while (not answer == 'b'):
+##        showMenu("Navigation Menu", WRITE_LIST)
+##        answer = getInput()
+##        try:
+##            answer = int(answer)
+##            if (WRITE_LIST[answer - 1] == "Create a new story"):
+##                sPrint("Please enter the file name for your story (no spaces)...")
+##                filename = getInput()
+##                FILENAME = filename
+##                if (not saveStory(True)):
+##                    nPrint(1)
+##                    sPrint("File was unable to be created.")
+##            elif (WRITE_LIST[answer - 1] == "Create a story from an existing text"):
+##                sPrint("This feature is still in development.")
+##            elif (WRITE_LIST[answer - 1] == "Load an existing story"):
+##                sPrint("This feature is still in development.")
+##        except (TypeError, ValueError, IndexError) as e:
+##            if (answer != 'b'):
+##                sPrint("Your input was not recognised.")
+##                sPrint("Error detail (WRITE1): " + str(e))
 
 def writeStory():
     global FILENAME
@@ -620,6 +668,8 @@ def writeStory():
                 if (not saveStory(True)):
                     nPrint(1)
                     sPrint("File was unable to be created.")
+            elif (WRITE_LIST[answer - 1] == "Create a story from an existing text"):
+                sPrint("This feature is still in development.")
             elif (WRITE_LIST[answer - 1] == "Load an existing story"):
                 sPrint("This feature is still in development.")
         except (TypeError, ValueError, IndexError) as e:
