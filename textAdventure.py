@@ -4,6 +4,10 @@ import time
 import datetime as dt
 import traceback    ## Allows visual of errors -> traceback.print_exc()
 
+##=========##
+##  SETUP  ##
+##=========##
+
 ## Name of file containing progress and content
 FILENAME = ""
 
@@ -32,6 +36,10 @@ PROGRESS_LIST = ["Load progress using player name", "Start a new game", "Back"]
 MULTISAVE_LIST = ["Overwrite existing progress", "Create a new progress save", "Re-enter player name"]
 MANAGE_LIST = ["View player saves", "Delete a player save", "Delete all player saves", "Back"]
 
+##====================##
+##  GLOBAL FUNCTIONS  ##
+##====================##
+
 def camelCaseSplit(string):
     ## Seperates camel case words into sentence case string
     return re.findall(r'[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))', string) 
@@ -57,6 +65,51 @@ def sPrint(text):
         print(c, end = "")
         time.sleep(duration)
     print("")
+
+def createBlankLong(length, char = ' '):
+    blank = ""
+    for i in range(length):
+        blank += char
+    return blank
+
+def showMenu(menuName, menuList, subText = "", subList = []):
+    global PLAYER
+    nPrint(2)
+    sPrint("===| " + menuName + " |===")
+    if (len(PLAYER) > 0):
+        sPrint("Player: " + PLAYER)
+    if (len(subText) > 0):
+        sPrint(subText)
+    if (len(subList) > 0):
+        nPrint(1)
+        for i in subList:
+            if (i == "Player Progression"):
+                sPrint(i + ":")
+                longest = 0
+                for p in subList.get(i):
+                    if (len(p[0]) > longest):
+                        longest = len(p[0])
+                for p in subList.get(i):
+                    sPrint("    " + p[0] + createBlankLong(longest + 3 - len(p[0])) + p[1])
+            else:
+                sPrint(i + ": " + str(subList[i]))
+        nPrint(1)
+    if (len(menuList) > 0):
+        sPrint("Please select an option:")
+        ordinal = 1
+        for o in menuList:
+            if (o == "Quit"):
+                prefix = "q"
+            elif (o == "Back"):
+                prefix = "b"
+            else:
+                prefix = str(ordinal)
+            sPrint("[{}] {}".format(prefix, o))
+            ordinal += 1
+
+##==================##
+##  GAME FUNCTIONS  ##
+##==================##
 
 def showPlayerState():
     global PLAYER
@@ -158,7 +211,7 @@ def updateState(opt):
                 STATE[req] = optState.get(req)
     return ''
 
-def getOption(options, answer):
+def getChosenOption(options, answer):
     ordinal = 0
     for opt in options:
         optReq = opt.get('requiredState')
@@ -168,7 +221,7 @@ def getOption(options, answer):
         if (answer == str(ordinal)):
             return opt
 
-def loadPos(pos):
+def getPosObj(pos):
     global CONTENT
     for obj in CONTENT:
         if (pos == obj.get('id')):
@@ -188,7 +241,7 @@ def startGame():
         showPlayerState()
         
         ## Load current object
-        obj = loadPos(HEAD_POS)
+        obj = getPosObj(HEAD_POS)
         objText = obj.get('text')
         objOpt = obj.get('options')
 
@@ -199,7 +252,7 @@ def startGame():
             while (nextText < 1 and answer != 'q'):
                 showOptions(objOpt)
                 answer = getInput()
-                chosenOption = getOption(objOpt, answer)
+                chosenOption = getChosenOption(objOpt, answer)
                 if (chosenOption and answer != 'q'):
                     nextText = getNextText(chosenOption)
                     HEAD_POS = nextText
@@ -216,14 +269,6 @@ def startGame():
             sPrint("Error loading position. Restarting sequence.")
     nPrint(1)
     sPrint("|>>> END OF GAME <<<|")
-    
-def createNewPlayer(players):
-    global PLAYER
-    newId = 1
-    for player in players:
-        if (player.get('id') > newId):
-            newId = player.get('id')
-    return {"id": newId + 1, "player": PLAYER, "lastPlayed": str(dt.datetime.now()), "position": HEAD_POS, "state": STATE}
 
 def saveProgress():
     global FILENAME
@@ -312,6 +357,18 @@ def saveProgress():
         sPrint("Error detail (SAVE1): " + str(e))
         return False
     return False
+
+##=========================##
+##  MANAGE GAME FUNCTIONS  ##
+##=========================##
+    
+def createNewPlayer(players):
+    global PLAYER
+    newId = 1
+    for player in players:
+        if (player.get('id') > newId):
+            newId = player.get('id')
+    return {"id": newId + 1, "player": PLAYER, "lastPlayed": str(dt.datetime.now()), "position": HEAD_POS, "state": STATE}
 
 def importAllData(existFilename = ""):
     global FILENAME
@@ -578,6 +635,10 @@ def managePlayers():
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (MANAGE1): " + str(e))
 
+##==========================##
+##  WRITING GAME FUNCTIONS  ##
+##==========================##
+
 def saveStory(new = False):
     global FILENAME
     global PROGRESS
@@ -759,47 +820,10 @@ def writeStory():
             if (answer != 'b'):
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (WRITE1): " + str(e))
-
-def createBlankLong(length, char = ' '):
-    blank = ""
-    for i in range(length):
-        blank += char
-    return blank
-
-def showMenu(menuName, menuList, subText = "", subList = []):
-    global PLAYER
-    nPrint(2)
-    sPrint("===| " + menuName + " |===")
-    if (len(PLAYER) > 0):
-        sPrint("Player: " + PLAYER)
-    if (len(subText) > 0):
-        sPrint(subText)
-    if (len(subList) > 0):
-        nPrint(1)
-        for i in subList:
-            if (i == "Player Progression"):
-                sPrint(i + ":")
-                longest = 0
-                for p in subList.get(i):
-                    if (len(p[0]) > longest):
-                        longest = len(p[0])
-                for p in subList.get(i):
-                    sPrint("    " + p[0] + createBlankLong(longest + 3 - len(p[0])) + p[1])
-            else:
-                sPrint(i + ": " + str(subList[i]))
-        nPrint(1)
-    if (len(menuList) > 0):
-        sPrint("Please select an option:")
-        ordinal = 1
-        for o in menuList:
-            if (o == "Quit"):
-                prefix = "q"
-            elif (o == "Back"):
-                prefix = "b"
-            else:
-                prefix = str(ordinal)
-            sPrint("[{}] {}".format(prefix, o))
-            ordinal += 1
+                
+##==================##
+##  MAIN FUNCTIONS  ##
+##==================##
 
 def mainMenu():
     global MAIN_LIST
