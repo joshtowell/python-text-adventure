@@ -221,7 +221,7 @@ def getChosenOption(options, answer):
         if (answer == str(ordinal)):
             return opt
 
-def getPosObj(pos):
+def getPos(pos):
     global CONTENT
     for obj in CONTENT:
         if (pos == obj.get('id')):
@@ -241,7 +241,7 @@ def startGame():
         showPlayerState()
         
         ## Load current object
-        obj = getPosObj(HEAD_POS)
+        obj = getPos(HEAD_POS)
         objText = obj.get('text')
         objOpt = obj.get('options')
 
