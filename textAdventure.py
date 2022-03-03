@@ -4,6 +4,10 @@ import time
 import datetime as dt
 import traceback    ## Allows visual of errors -> traceback.print_exc()
 
+##=========##
+##  SETUP  ##
+##=========##
+
 ## Name of file containing progress and content
 FILENAME = ""
 
@@ -26,11 +30,15 @@ SLOWMODE = False
 
 ## Menu option lists
 MAIN_LIST = ["Play a story", "Write a story", "Manage players", "Quit"]
-WRITE_LIST = ["Create a new story", "Load an existing story", "Back"]
+WRITE_LIST = ["Create a new story", "Create a story from an existing text", "Load an existing story", "Back"]
 LOAD_LIST = ["Load default story", "Load from a known file", "Back"]
 PROGRESS_LIST = ["Load progress using player name", "Start a new game", "Back"]
 MULTISAVE_LIST = ["Overwrite existing progress", "Create a new progress save", "Re-enter player name"]
 MANAGE_LIST = ["View player saves", "Delete a player save", "Delete all player saves", "Back"]
+
+##====================##
+##  GLOBAL FUNCTIONS  ##
+##====================##
 
 def camelCaseSplit(string):
     ## Seperates camel case words into sentence case string
@@ -57,6 +65,51 @@ def sPrint(text):
         print(c, end = "")
         time.sleep(duration)
     print("")
+
+def createBlankLong(length, char = ' '):
+    blank = ""
+    for i in range(length):
+        blank += char
+    return blank
+
+def showMenu(menuName, menuList, subText = "", subList = []):
+    global PLAYER
+    nPrint(2)
+    sPrint("===| " + menuName + " |===")
+    if (len(PLAYER) > 0):
+        sPrint("Player: " + PLAYER)
+    if (len(subText) > 0):
+        sPrint(subText)
+    if (len(subList) > 0):
+        nPrint(1)
+        for i in subList:
+            if (i == "Player Progression"):
+                sPrint(i + ":")
+                longest = 0
+                for p in subList.get(i):
+                    if (len(p[0]) > longest):
+                        longest = len(p[0])
+                for p in subList.get(i):
+                    sPrint("    " + p[0] + createBlankLong(longest + 3 - len(p[0])) + p[1])
+            else:
+                sPrint(i + ": " + str(subList[i]))
+        nPrint(1)
+    if (len(menuList) > 0):
+        sPrint("Please select an option:")
+        ordinal = 1
+        for o in menuList:
+            if (o == "Quit"):
+                prefix = "q"
+            elif (o == "Back"):
+                prefix = "b"
+            else:
+                prefix = str(ordinal)
+            sPrint("[{}] {}".format(prefix, o))
+            ordinal += 1
+
+##==================##
+##  GAME FUNCTIONS  ##
+##==================##
 
 def showPlayerState():
     global PLAYER
@@ -158,7 +211,7 @@ def updateState(opt):
                 STATE[req] = optState.get(req)
     return ''
 
-def getOption(options, answer):
+def getChosenOption(options, answer):
     ordinal = 0
     for opt in options:
         optReq = opt.get('requiredState')
@@ -168,7 +221,7 @@ def getOption(options, answer):
         if (answer == str(ordinal)):
             return opt
 
-def loadPos(pos):
+def getPos(pos):
     global CONTENT
     for obj in CONTENT:
         if (pos == obj.get('id')):
@@ -188,7 +241,7 @@ def startGame():
         showPlayerState()
         
         ## Load current object
-        obj = loadPos(HEAD_POS)
+        obj = getPos(HEAD_POS)
         objText = obj.get('text')
         objOpt = obj.get('options')
 
@@ -199,7 +252,7 @@ def startGame():
             while (nextText < 1 and answer != 'q'):
                 showOptions(objOpt)
                 answer = getInput()
-                chosenOption = getOption(objOpt, answer)
+                chosenOption = getChosenOption(objOpt, answer)
                 if (chosenOption and answer != 'q'):
                     nextText = getNextText(chosenOption)
                     HEAD_POS = nextText
@@ -216,14 +269,6 @@ def startGame():
             sPrint("Error loading position. Restarting sequence.")
     nPrint(1)
     sPrint("|>>> END OF GAME <<<|")
-    
-def createNewPlayer(players):
-    global PLAYER
-    newId = 1
-    for player in players:
-        if (player.get('id') > newId):
-            newId = player.get('id')
-    return {"id": newId + 1, "player": PLAYER, "lastPlayed": str(dt.datetime.now()), "position": HEAD_POS, "state": STATE}
 
 def saveProgress():
     global FILENAME
@@ -312,6 +357,18 @@ def saveProgress():
         sPrint("Error detail (SAVE1): " + str(e))
         return False
     return False
+
+##=========================##
+##  MANAGE GAME FUNCTIONS  ##
+##=========================##
+    
+def createNewPlayer(players):
+    global PLAYER
+    newId = 1
+    for player in players:
+        if (player.get('id') > newId):
+            newId = player.get('id')
+    return {"id": newId + 1, "player": PLAYER, "lastPlayed": str(dt.datetime.now()), "position": HEAD_POS, "state": STATE}
 
 def importAllData(existFilename = ""):
     global FILENAME
@@ -578,8 +635,14 @@ def managePlayers():
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (MANAGE1): " + str(e))
 
+##==========================##
+##  WRITING GAME FUNCTIONS  ##
+##==========================##
+
 def saveStory(new = False):
     global FILENAME
+    global PROGRESS
+    global CONTENT
     try:
         if (not new):
             with open(FILENAME + '.json', 'r') as readFile:
@@ -595,15 +658,142 @@ def saveStory(new = False):
                     return False
         with open(FILENAME + '.json', 'w') as writeFile:
             if (new):
-                json.dump({"progress": [], "content": []}, writeFile)
-            else:
-                json.dump({"progress": PROGRESS, "content": CONTENT}, writeFile)
+                PROGRESS = []
+                CONTENT = []
+            json.dump({"progress": PROGRESS, "content": CONTENT}, writeFile)
         return True
     except (json.decoder.JSONDecodeError, FileNotFoundError) as e:
         nPrint(1)
         sPrint("The save file could not be edited.")
         sPrint("Error detail (STORY1): " + str(e))
         return False
+
+def highestId(listObj = CONTENT):
+    global CONTENT
+    highestId = 0
+    for i in listObj:
+        if (i.get('id') and i.get('id') > highestId):
+            highestId = i.get('id')
+    return highestId
+
+def addToPosition(newId = 0, newText = "", newOption = {}):
+    global CONTENT
+    position = {}
+    for i in CONTENT:
+        if (i.get('id') and newId > 0 and i.get('id') == newId):
+            position = i
+            break
+    if (len(position) < 1 and newId > 0):
+        position = {'id': newId, 'text':"", 'options':{}}
+        if (len(newText) < 1):
+            saveObj(position)
+            return True
+    else:
+        sPrint("Unable to save position ID.")
+        return False
+    if (len(newText) > 0):
+        position['text'] = newText
+        saveObj(position)
+        return True
+    else:
+        sPrint("Unable to save position text.")
+        return False
+    if (len(options) > 0):
+        position['options'].append(newOption)
+        saveObj(position)
+        return True
+    else:
+        sPrint("Unable to save position text.")
+        return False
+    saveObj(position)
+    return True
+
+def addToOption(posId, newId = 0, newText = "", newList = []):
+    option = {}
+    if (newId > 0):
+        option = {'id': newId, 'text':""}
+        if (len(newText) < 1):
+            saveObj(option, listObj = getPosObj(posId).get('options'))
+            return True
+    else:
+        sPrint("Unable to save option ID.")
+        return False
+    if (len(newText) > 0):
+        option['text'] = newText
+        saveObj(option, listObj = getPosObj(posId).get('options'))
+        return True
+    else:
+        sPrint("Unable to save option text.")
+        return False
+    saveObj(option, listObj = getPosObj(posId).get('options'))
+    return True
+
+def getPosObj(posId):
+    global CONTENT
+    for i in CONTENT:
+        if (i.get('id') and i.get('id') == posID):
+            return i
+    sPrint("Position could not be loaded.")
+
+def saveObj(obj, listObj = CONTENT):
+    global CONTENT
+    for i in listObj:
+        if (i.get('id') and i.get('id') == obj['id']):
+            listObj[i] = obj
+            return True
+    sPrint("Object could not be saved.")
+    return False
+
+def writePosition(newId = 0, newText = "", newOption = {}):
+    answer = ''
+    allValid = False
+    while (not allValid):
+        showMenu("Edit Menu", [])
+        try:
+            sPrint("Please enter the position ID (current highest ID is '{}')...".format(highestId()))
+            newId = int(getInput())
+            if (addToPosition(newId = newId)):
+                sPrint("Please enter the position text (story and question)...")
+                newText = str(getInput())
+                if (addToPosition(newId = newId, newText = newText)):
+                    sPrint("Please enter the number of options you wish to add for this position...".format(highestId()))
+                    optionCount = int(getInput())
+                    while (optionCount > 0):
+                        posObj = getPosObj(newId)
+                        if (posObj):
+                            optId = highestId(listObj = len(posObj.get('options')) + 1)
+                            if (addToOption(newId, newId = optId)):
+                                sPrint("Please enter the option text...")
+                                optText = str(getInput())
+                                if (addToOption(newId, newId = optId)):
+                                    if (addToPosition(newId = newId, newOption = newOption)):
+                                        optionCount -= 1
+        except (TypeError, ValueError, IndexError) as e:
+            sPrint("Your input was not recognised.")
+            sPrint("Error detail (EDIT1): " + str(e))
+
+##def positionMenu():
+##    answer = ''
+##    while (not answer == 'b'):
+##        showMenu("Navigation Menu", WRITE_LIST)
+##        answer = getInput()
+##        try:
+##            answer = int(answer)
+##            if (WRITE_LIST[answer - 1] == "Create a new story"):
+##                sPrint("Please enter the file name for your story (no spaces)...")
+##                filename = getInput()
+##                FILENAME = filename
+##                if (not saveStory(True)):
+##                    nPrint(1)
+##                    sPrint("File was unable to be created.")
+##            elif (WRITE_LIST[answer - 1] == "Create a story from an existing text"):
+##                sPrint("This feature is still in development.")
+##            elif (WRITE_LIST[answer - 1] == "Load an existing story"):
+##                sPrint("This feature is still in development.")
+##        except (TypeError, ValueError, IndexError) as e:
+##            if (answer != 'b'):
+##                sPrint("Your input was not recognised.")
+##                sPrint("Error detail (WRITE1): " + str(e))
 
 def writeStory():
     global FILENAME
@@ -620,53 +810,20 @@ def writeStory():
                 if (not saveStory(True)):
                     nPrint(1)
                     sPrint("File was unable to be created.")
+##                    while ():   ## HELP
+                writePosition()
+            elif (WRITE_LIST[answer - 1] == "Create a story from an existing text"):
+                sPrint("This feature is still in development.")
             elif (WRITE_LIST[answer - 1] == "Load an existing story"):
                 sPrint("This feature is still in development.")
         except (TypeError, ValueError, IndexError) as e:
             if (answer != 'b'):
                 sPrint("Your input was not recognised.")
                 sPrint("Error detail (WRITE1): " + str(e))
-
-def createBlankLong(length, char = ' '):
-    blank = ""
-    for i in range(length):
-        blank += char
-    return blank
-
-def showMenu(menuName, menuList, subText = "", subList = []):
-    global PLAYER
-    nPrint(2)
-    sPrint("===| " + menuName + " |===")
-    if (len(PLAYER) > 0):
-        sPrint("Player: " + PLAYER)
-    if (len(subText) > 0):
-        sPrint(subText)
-    if (len(subList) > 0):
-        nPrint(1)
-        for i in subList:
-            if (i == "Player Progression"):
-                sPrint(i + ":")
-                longest = 0
-                for p in subList.get(i):
-                    if (len(p[0]) > longest):
-                        longest = len(p[0])
-                for p in subList.get(i):
-                    sPrint("    " + p[0] + createBlankLong(longest + 3 - len(p[0])) + p[1])
-            else:
-                sPrint(i + ": " + str(subList[i]))
-        nPrint(1)
-    if (len(menuList) > 0):
-        sPrint("Please select an option:")
-        ordinal = 1
-        for o in menuList:
-            if (o == "Quit"):
-                prefix = "q"
-            elif (o == "Back"):
-                prefix = "b"
-            else:
-                prefix = str(ordinal)
-            sPrint("[{}] {}".format(prefix, o))
-            ordinal += 1
+                
+##==================##
+##  MAIN FUNCTIONS  ##
+##==================##
 
 def mainMenu():
     global MAIN_LIST
